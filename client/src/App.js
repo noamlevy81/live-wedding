@@ -9,6 +9,8 @@ import PublishIcon from '@mui/icons-material/Publish';
 import { uploadFile } from 'react-s3';
 import { aws_access_key_id, aws_secret_access_key } from './secrets';
 import uuid from 'react-uuid';
+import pic from "./title.png";
+
 
 const S3_BUCKET = 'or-and-noam-wedding-bucket';
 const REGION ='eu-west-1';
@@ -81,7 +83,7 @@ function App() {
     <div className={classes.root}>
       <Grid container>
         <Grid item xs={12}>
-          <h1>החתונה של אור ונועם!</h1>
+          <img src={pic} alt="title" />;
           <h5>העלה תמונה לשיתוף על המסך!</h5>
           {source &&
             <Grid item xs={12}>
