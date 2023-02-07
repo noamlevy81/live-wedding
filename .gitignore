@@ -154,3 +154,4 @@ dist
 
 .idea/*
 
+/infra/.terraform.lock.hcl
