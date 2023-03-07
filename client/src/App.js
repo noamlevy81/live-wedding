@@ -9,8 +9,10 @@ import PublishIcon from '@mui/icons-material/Publish';
 import { aws_access_key_id, aws_secret_access_key, api_token } from './secrets';
 import uuid from 'react-uuid';
 import pic from "./title.png";
+import axios from 'axios';
+const FormData = require('form-data');
 
-
+  
 const S3_BUCKET = 'or-and-noam-wedding-bucket';
 const REGION ='eu-west-1';
 const ACCESS_KEY = aws_access_key_id;
@@ -57,14 +59,12 @@ function App() {
   const handleCapture = (target) => {
     if (target.files) {
       if (target.files.length !== 0) {
-        const file = target.files[0];
-        const myNewFile = new File(
-          [file],
-          `${uuid()}.png`,
-          { type: file.type }
-        );
-        setFile(myNewFile);
-        const newUrl = URL.createObjectURL(file);
+        const newFile = target.files[0];
+        const formData = new FormData();
+        formData.append('file', newFile);
+        const fileName = `${uuid()}.png`;
+        setFile({ file: formData, name: fileName });
+        const newUrl = URL.createObjectURL(newFile);
         setSource(newUrl);
       }
     }
@@ -74,29 +74,23 @@ function App() {
     if (!file) {
       return;
     }
+    
+    axios.post(API_GW_URL, { imagePath: file.name, token: API_TOKEN })
+      .then(res => {
+        console.log(res.data);
 
-    await fetch(API_GW_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-    },
-      body: JSON.stringify({ imagePath: file.name, token: API_TOKEN })
-    })
-    .then(data => {
-      console.log(data);
+        const uploadUrl = res.data['presignedUrl'];
+        axios.put(uploadUrl, { data: file.file }, {
+          headers: {
+            // 'Content-Type': 'x-www-form-urlencoded',
+          }}
+        ).then(
+          res => console.log(res)
+        ).catch(
+          err => console.error(err)
+        );
 
-      const uploadUrl = data['presignedUrl'];
-      fetch(uploadUrl, {
-        method: "PUT",
-        body: file.body,
       });
-
-    })
-    .catch(error => {
-      console.error(error);
-    });
-
-
   };
 
 
