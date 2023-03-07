@@ -3,15 +3,18 @@ provider "aws" {
   profile = "noam_private"
 }
 
+locals {
+  domain = "or-and-noam-wedding"
+}
+
 resource "aws_s3_bucket" "images_bucket" {
-  bucket = "or-and-noam-wedding-bucket"
+  bucket = "${local.domain}-bucket"
 
   acl  = "public-read-write"
   tags = {
     Name = "images-bucket"
   }
 }
-
 module "presign_url_lambda" {
   source = "./lambda"
 
@@ -56,6 +59,41 @@ resource "aws_iam_role_policy" "lambda_s3_permission" {
 }
 EOF
 }
+
+resource "aws_iam_user" "edge_device_user" {
+  name = "edge_device_user"
+}
+
+resource "aws_iam_access_key" "edge_device_access_key" {
+  user = aws_iam_user.edge_device_user.name
+}
+
+resource "aws_iam_user_policy" "s3_read_policy" {
+  name = "test"
+  user = aws_iam_user.edge_device_user.name
+
+  policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "S3ReadAccess",
+            "Effect": "Allow",
+            "Action": [
+                "s3:GetObject",
+                "s3:ListBucket"
+            ],
+            "Resource": [
+                "arn:aws:s3:::${aws_s3_bucket.images_bucket.bucket}/images/*",
+                "arn:aws:s3:::your-bucket-name"
+            ]
+        }
+    ]
+}
+
+EOF
+}
+
 
 resource "aws_api_gateway_rest_api" "apiLambda" {
   name        = "myAPI"
@@ -129,7 +167,7 @@ resource "aws_lambda_permission" "apigw" {
   source_arn = "${aws_api_gateway_rest_api.apiLambda.execution_arn}/*/*"
 }
 
-
-output "base_url" {
-  value = aws_api_gateway_deployment.apideploy.invoke_url
+module "static_web_hosting" {
+  source = "./static_web_hosting"
+  domain_name = local.domain
 }
