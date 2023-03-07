@@ -6,8 +6,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import PhotoCameraRoundedIcon from "@material-ui/icons/PhotoCameraRounded";
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import PublishIcon from '@mui/icons-material/Publish';
-import { uploadFile } from 'react-s3';
-import { aws_access_key_id, aws_secret_access_key } from './secrets';
+import { aws_access_key_id, aws_secret_access_key, api_token } from './secrets';
 import uuid from 'react-uuid';
 import pic from "./title.png";
 
@@ -16,6 +15,9 @@ const S3_BUCKET = 'or-and-noam-wedding-bucket';
 const REGION ='eu-west-1';
 const ACCESS_KEY = aws_access_key_id;
 const SECRET_ACCESS_KEY = aws_secret_access_key;
+const API_GW_URL = 'https://dq0a3lqhmc.execute-api.eu-west-1.amazonaws.com/test'
+const API_TOKEN = api_token;
+
 
 const config = {
   bucketName: S3_BUCKET,
@@ -72,9 +74,28 @@ function App() {
     if (!file) {
       return;
     }
-    uploadFile(file, config)
-      .then(data => { console.log(data); setSource(""); })
-      .catch(err => console.error(err))
+
+    await fetch(API_GW_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+    },
+      body: JSON.stringify({ imagePath: file.name, token: API_TOKEN })
+    })
+    .then(data => {
+      console.log(data);
+
+      const uploadUrl = data['presignedUrl'];
+      fetch(uploadUrl, {
+        method: "PUT",
+        body: file.body,
+      });
+
+    })
+    .catch(error => {
+      console.error(error);
+    });
+
 
   };
 
@@ -83,8 +104,8 @@ function App() {
     <div className={classes.root}>
       <Grid container>
         <Grid item xs={12}>
-          <img src={pic} alt="title" />;
-          <h5>העלה תמונה לשיתוף על המסך!</h5>
+          <img src={pic} alt="title" />
+          <h5>העלו תמונה לשיתוף על המסך</h5>
           {source &&
             <Grid item xs={12}>
             <Box display="flex" justifyContent="center" border={1} className={classes.imgBox}>
