@@ -86,7 +86,7 @@ function App() {
     <div className={classes.root}>
       <Grid container>
         <Grid item xs={12}>
-          <img src={pic} alt="title" />
+          <img src={pic} alt="title" style={{ maxWidth: "100%" }} />
           <h5>העלו תמונה לשיתוף על המסך</h5>
           {source &&
             <Grid item xs={12}>
