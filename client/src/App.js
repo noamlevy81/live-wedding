@@ -6,28 +6,15 @@ import { makeStyles } from '@material-ui/core/styles';
 import PhotoCameraRoundedIcon from "@material-ui/icons/PhotoCameraRounded";
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import PublishIcon from '@mui/icons-material/Publish';
-import { aws_access_key_id, aws_secret_access_key, api_token } from './secrets';
 import uuid from 'react-uuid';
 import pic from "./title.png";
 import axios from 'axios';
-const FormData = require('form-data');
 
-  
-const S3_BUCKET = 'or-and-noam-wedding-bucket';
-const REGION ='eu-west-1';
-const ACCESS_KEY = aws_access_key_id;
-const SECRET_ACCESS_KEY = aws_secret_access_key;
+
 const API_GW_URL = 'https://dq0a3lqhmc.execute-api.eu-west-1.amazonaws.com/test'
-const API_TOKEN = api_token;
+const API_TOKEN = 'Noam Loves Or';
 
 
-const config = {
-  bucketName: S3_BUCKET,
-  region: REGION,
-  accessKeyId: ACCESS_KEY,
-  secretAccessKey: SECRET_ACCESS_KEY,
-  dirName: 'images',
-} 
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -60,10 +47,8 @@ function App() {
     if (target.files) {
       if (target.files.length !== 0) {
         const newFile = target.files[0];
-        const formData = new FormData();
-        formData.append('file', newFile);
         const fileName = `${uuid()}.png`;
-        setFile({ file: formData, name: fileName });
+        setFile({ file: newFile, name: fileName });
         const newUrl = URL.createObjectURL(newFile);
         setSource(newUrl);
       }
@@ -74,17 +59,19 @@ function App() {
     if (!file) {
       return;
     }
-    
+    console.log("logging file: ")
+    console.log(file)
     axios.post(API_GW_URL, { imagePath: file.name, token: API_TOKEN })
       .then(res => {
         console.log(res.data);
 
         const uploadUrl = res.data['presignedUrl'];
-        axios.put(uploadUrl, { data: file.file }, {
-          headers: {
-            // 'Content-Type': 'x-www-form-urlencoded',
-          }}
-        ).then(
+        console.log(uploadUrl);
+        fetch(uploadUrl, {
+          method: "PUT",
+          body: file["file"],
+        })
+            .then(
           res => console.log(res)
         ).catch(
           err => console.error(err)

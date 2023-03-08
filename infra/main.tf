@@ -104,7 +104,7 @@ resource "aws_api_gateway_rest_api" "apiLambda" {
 resource "aws_api_gateway_resource" "proxy" {
   rest_api_id = aws_api_gateway_rest_api.apiLambda.id
   parent_id   = aws_api_gateway_rest_api.apiLambda.root_resource_id
-  path_part   = "{proxy+}"
+  path_part   = "test"
 }
 
 resource "aws_api_gateway_method" "proxyMethod" {
@@ -144,6 +144,55 @@ resource "aws_api_gateway_integration" "lambda_root" {
   uri                     = module.presign_url_lambda.invoke_arn
 }
 
+resource "aws_api_gateway_resource" "cors" {
+  depends_on = [aws_api_gateway_resource.proxy]
+  rest_api_id = aws_api_gateway_rest_api.apiLambda.id
+  parent_id   = aws_api_gateway_rest_api.apiLambda.root_resource_id
+  path_part   = "{cors+}"
+}
+
+resource "aws_api_gateway_method" "cors" {
+  rest_api_id   = aws_api_gateway_rest_api.apiLambda.id
+  resource_id   = aws_api_gateway_resource.cors.id
+  http_method   = "OPTIONS"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "cors" {
+  rest_api_id = aws_api_gateway_rest_api.apiLambda.id
+  resource_id = aws_api_gateway_resource.cors.id
+  http_method = aws_api_gateway_method.cors.http_method
+  type = "MOCK"
+}
+
+resource "aws_api_gateway_method_response" "cors" {
+  depends_on = [aws_api_gateway_method.cors]
+  rest_api_id = aws_api_gateway_rest_api.apiLambda.id
+  resource_id = aws_api_gateway_resource.cors.id
+  http_method = aws_api_gateway_method.cors.http_method
+  status_code = 200
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Origin" = true,
+    "method.response.header.Access-Control-Allow-Methods" = true,
+    "method.response.header.Access-Control-Allow-Headers" = true
+  }
+  response_models = {
+    "application/json" = "Empty"
+  }
+}
+
+resource "aws_api_gateway_integration_response" "cors" {
+  depends_on = [aws_api_gateway_integration.cors, aws_api_gateway_method_response.cors]
+  rest_api_id = aws_api_gateway_rest_api.apiLambda.id
+  resource_id = aws_api_gateway_resource.cors.id
+  http_method = aws_api_gateway_method.cors.http_method
+  status_code = 200
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Origin" = "'*'", # replace with hostname of frontend (CloudFront)
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type'",
+    "method.response.header.Access-Control-Allow-Methods" = "'GET, POST, OPTIONS'" # remove or add HTTP methods as needed
+  }
+}
 
 resource "aws_api_gateway_deployment" "apideploy" {
   depends_on = [
