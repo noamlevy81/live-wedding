@@ -12,7 +12,8 @@ import axios from 'axios';
 
 
 const API_GW_URL = 'https://dq0a3lqhmc.execute-api.eu-west-1.amazonaws.com/test'
-const API_TOKEN = 'Noam Loves Or';
+import { api_token } from './secrets';
+const API_TOKEN = api_token;
 
 
 
