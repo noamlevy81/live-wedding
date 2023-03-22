@@ -4,7 +4,7 @@ const fs = require('fs');
 
 const s3Client = new S3Client({ region: 'eu-west-1', });
 s3Client.removeListe
-const { sync } = new S3SyncClient({ client: s3Client });
+const {sync} = new S3SyncClient({client: s3Client});
 
 const SYNC_INTERVAL = 5000;
 const BUCKET = 'or-and-noam-wedding-bucket/images';
