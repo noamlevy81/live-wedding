@@ -1,11 +1,11 @@
 import React, {useState} from 'react';
 import Grid from '@material-ui/core/Grid';
 import Box from '@material-ui/core/Box';
-import {IconButton} from '@material-ui/core';
 import {makeStyles} from '@material-ui/core/styles';
-import PhotoCameraRoundedIcon from "@material-ui/icons/PhotoCameraRounded";
-import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import Button from "@material-ui/core/Button";
 import PublishIcon from '@mui/icons-material/Publish';
+import PhotoCamera from '@mui/icons-material/PhotoCamera';
+import CollectionsIcon from '@mui/icons-material/Collections';
 import uuid from 'react-uuid';
 import titlePic from "./title.png";
 import successPic from "./success.png"
@@ -21,15 +21,6 @@ const useStyles = makeStyles((theme) => ({
     root: {
         height: "100%",
         textAlign: 'center',
-    },
-    imgBox: {
-        maxWidth: "80%",
-        maxHeight: "80%",
-        margin: "10px"
-    },
-    img: {
-        height: "inherit",
-        maxWidth: "inherit",
     },
     input: {
         display: "none"
@@ -60,6 +51,7 @@ function App() {
         if (!file) {
             return;
         }
+        setSource(successPic)
         console.log("logging file: ")
         console.log(file)
         axios.post(API_GW_URL, {imagePath: file.name, token: API_TOKEN})
@@ -72,37 +64,38 @@ function App() {
                     method: "PUT",
                     body: file["file"],
                 })
-                    .then(() => setSource(successPic)
-                    ).catch(
-                    err => console.error(err)
-                );
-
             });
     };
 
 
     return (
         <div className={classes.root}>
-            <Grid container>
-                <Grid item xs={12}>
+            <Grid container   alignItems="center">
+                <Grid item xs={12} alignItems="center">
                     <img src={titlePic} alt="title" style={{maxWidth: "100%"}}/>
-                    <h5>העלו תמונה לשיתוף על המסך</h5>
+                    <h5> &#x1F603; העלו תמונה לשיתוף על המסך</h5>
                     {source &&
-                        <Grid item xs={12}>
-                            <Box display="flex" justifyContent="center" border={1} className={classes.imgBox}>
-                                <img src={source} alt={"snap"} className={classes.img} style={{maxWidth: "100%"}}></img>
-                                { source.includes('success') && <h6>אליפות! עכשיו תזמינו מישהו לצ׳ייסר!</h6>}
+                        <Grid Container item xs={12} alignItems="center" >
+                            <Box display="flex" justifyContent="center" flexDirection="column" alignItems="center" >
+                                <img src={source} alt={"snap"} className={classes.img} style={{maxWidth: "70%"}}></img>
+                                { source.includes('success') &&
+                                    <h5> &#x1F44F; &#x1F44F; &#x1F44F; אליפות </h5>}
+                                { source.includes('success') &&
+                                    <h5> &#x1f943; עכשיו הזמינו מישהו לצ׳ייסר </h5>}
                             </Box>
                             { !source.includes('success') &&
-                                <IconButton
+                                <Button
+                                style={{margin: '5px'}}
                                 color="primary"
                                 aria-label="submit"
+                                variant="outlined"
+                                size="large"
                                 component="span"
+                                endIcon={<PublishIcon />}
                                 onClick={() => uploadPicture()}
                             >
-
-                                <PublishIcon fontSize="large" color="secondary"/>
-                            </IconButton>
+                            העלה/י
+                            </Button>
                             }
                         </Grid>
                     }
@@ -121,23 +114,26 @@ function App() {
                         capture="environment"
                         onChange={(e) => handleCapture(e.target)}
                     />
-                    <label htmlFor="icon-button-take-photo">
-                        <IconButton
+                    <label htmlFor="icon-button-take-photo" style={{margin: '4px'}}>
+                        <Button
+                            variant="outlined"
                             color="primary"
                             aria-label="take picture"
                             component="span"
+                            endIcon={<PhotoCamera />}
                         >
-                            <PhotoCameraRoundedIcon fontSize="large" color="primary"/>
-                        </IconButton>
+                            צלמ/י
+                        </Button>
                     </label>
-                    <label htmlFor="icon-button-file">
-                        <IconButton
+                    <label htmlFor="icon-button-file" style={{margin: '4px'}}>
+                        <Button
+                            variant="outlined"
                             color="primary"
                             aria-label="upload picture"
                             component="span"
-                        >
-                            <CloudUploadIcon fontSize="large" color="primary"/>
-                        </IconButton>
+                            endIcon={<CollectionsIcon />}
+                        >גלריה
+                        </Button>
                     </label>
                 </Grid>
             </Grid>

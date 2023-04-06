@@ -3,6 +3,7 @@ const S3SyncClient = require('s3-sync-client');
 const Jimp = require('jimp');
 const s3Client = new S3Client({
     region: 'eu-west-1',
+    credentials: {accessKeyId}
 });
 s3Client.removeListe
 const {sync} = new S3SyncClient({client: s3Client});
